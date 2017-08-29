@@ -1,18 +1,41 @@
 # Requirements Overview
 
-Before this module begins any development work, we want to make sure we have a clear idea of the scope of the module and what will be required to properly implement it.
+This file aims to outline the required architecture for the utexas_saml_auth_helper Drupal 8 module.
 
+* *utexas_saml_auth_helper.info.yml*
+  * Declare a dependency on the [simplesamlphp_auth](https://www.drupal.org/project/simplesamlphp_auth) module.
 
-* We'll need to determine the procedure for proper installation and configuration for the contrib simplesamlphp_auth
-  * Our composer.json in our distribution will have to include a reference to the [`simplesamlphp` repo](https://github.com/simplesamlphp/simplesamlphp).
-  * We'll need to define simplesamlphp configuration settings and abstract that away from users. The configuration will have to be placed in /vendor/simplesamlphp/simplesamphp/config. We can use the configuration from our D7 implementation, which is under /private/simplesamlphp-1.11.0/config *NEED TO CONFIRM THIS WILL WORK AS EXPECTED*. Since this config isn't provided by default, we'll want to include it somewhere and copy it to the appropriate place after composer installs it.
-  * We'll need to include the appropriate default Drupal settings in some config yml files, that can be placed in the utexas_saml_auth_helper config/install directory.
+* *config/install/utexas_saml_auth_helper.settings.yml*
+  This will contain our custom configuration definitions and defaults. Specifically:
+  * utexas_saml_auth_helper_iid_domain: eid.utexas.edu
+  
+* *utexas_saml_auth_helper.module*
+  * `hook_form_FORM_ID_alter` for the user registration/edit form.
+    * Modify form element for "This is a SAML account" to "This is a UTLogin account"
+    * Default the "This is a UTLogin account" option to true, and disable the element.
+    * Set password form element to #access=FALSE and #required=FALSE.
+    * Disable editing the username for non-admins.
+    * Set email form element to #disabled=TRUE and #required=FALSE.
+    * Add custom validation that will:
+      * Confirm the name entered is a valid EID
+        * The regex expression from the Drupal 7 module should be reused for this.
+      * Set email to EID + "@" + `utexas_saml_auth_helper_iid_domain` configuration setting.
+      
+* *utexas_saml_auth_helper.permissions.yml*
+  * Define permission 'change saml authentication setting'.
 
-* We'll want to implement hook_form_FORM_ID_alter to do some of the stuff we're doing in the D7 module on our user registration/edit form, specifically:
+* *utexas_saml_auth_helper.install*
+  * Set configuration for simplesamlphp_auth
+    * Users being auto-provisioned set to FALSE
+    * Only user 1 can login via Drupal
+  * Set config for 'Site Manager' role (user.role.site_manager) to add the 'change saml authentication setting' permission.
+  * Modify the config for `user.mail` (the new user registration email) to include proper verbiage for UT EID based accounts.
+  * `hook_uninstall`
+    * Clean `authmap` table of any records with module = utexas_saml_auth_helper
+    * Reset configuration for simplesamlphp_auth described above
+    
+* *utexas_saml_auth_helper.drush.inc*
+  * Define a drush command for converting all eligible users to SAML login
+    * This should provide a way for a developer to pass a particular username or "all" to be converted to SAML login.
+    * Much of the logic from the D7 module can be reused here. The entity and database querying functions will need to be updated to use the Drupal 8 equivalent services to load the user entities, and to perform a database merge to the authmap table.
 
-  * Enforce SAML option and remove the password field for new registrations
-  * Disable editing the username on previously made accounts
-  * Remove email field and make it not required
-  * Override the email validation since there won't be one.
-  *Implement some custom username validation to ensure username as an EID. We can likely reuse the regex logic already in our D7 utexas_saml_auth_helper.
-* We'll want to add a drush command for converting users to SAML login, which is a feature of the D7 utexas_saml_auth_helper.
