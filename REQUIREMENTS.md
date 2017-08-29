@@ -4,6 +4,8 @@ Before this module begins any development work, we want to make sure we have a c
 
 
 * We'll need to determine the procedure for proper installation and configuration for the contrib simplesamlphp_auth
+  * Our composer.json in our distribution will have to include a reference to the [`simplesamlphp` repo](https://github.com/simplesamlphp/simplesamlphp).
+  * We'll want to define some configuration settings and abstract that away from users.
 
 * We'll want to implement hook_form_FORM_ID_alter to do some of the stuff we're doing in the D7 module on our user registration/edit form, specifically:
 
