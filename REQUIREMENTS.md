@@ -6,8 +6,8 @@ This file aims to outline the required architecture for the utexas_saml_auth_hel
   * Declare a dependency on the [simplesamlphp_auth](https://www.drupal.org/project/simplesamlphp_auth) module.
 
 * *config/install/utexas_saml_auth_helper.settings.yml*
-  This will contain our custom configuration definitions and defaults. Specifically:
-  * utexas_saml_auth_helper_iid_domain: eid.utexas.edu
+  * This will contain our custom configuration definitions and defaults. Specifically:
+    * utexas_saml_auth_helper_iid_domain: eid.utexas.edu
   
 * *utexas_saml_auth_helper.module*
   * `hook_form_FORM_ID_alter` for the user registration/edit form.
