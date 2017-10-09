@@ -39,6 +39,11 @@ function utexas_saml_auth_helper_install() {
  * Implements hook_uninstall().
  */
 function utexas_saml_auth_helper_uninstall() {
+  // Delete all authmap records related to SAML authentication.
+  $query = \Drupal::database()->delete('authmap');
+  $query->condition('provider', 'simplesamlphp_auth');
+  $query->execute();
+
   // Restore the original mail registration messages.
   $original = \Drupal::configFactory()->getEditable('utexas_saml_auth_helper.settings');
   $mail_settings = \Drupal::configFactory()->getEditable('user.mail');
