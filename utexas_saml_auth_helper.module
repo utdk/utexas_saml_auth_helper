@@ -37,12 +37,13 @@ function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_sta
     $form['account']['current_pass']['#access'] = FALSE;
     $form['account']['name']['#title'] = t('Username (UT EID)');
     $form['account']['name']['#weight'] = -2;
+    $form['account']['name']['#description'] = t("Most Texas affiliates' EIDs can be obtained via <a href='https://directory.utexas.edu/'>https://directory.utexas.edu/</a>.");
 
     // Email address is not required.
     $form['account']['mail']['#required'] = FALSE;
     $form['account']['mail']['#disabled'] = TRUE;
     $form['account']['mail']['#weight'] = -1;
-    $form['account']['mail']['#description'] = t('All e-mails from the system will be sent to this address. The e-mail address is not made public and will only be used if you wish to receive certain news or notifications by e-mail. This field cannot be modified manually; it will be filled in from UT EID attributes when the user logs in.');
+    $form['account']['mail']['#description'] = t('This field cannot be modified manually; it will be filled in from UT EID attributes when the user logs in. All e-mails from the system will be sent to this address. The e-mail address is not made public and will only be used if you wish to receive certain news or notifications by e-mail.');
 
     // The email address can't actually be blank, so we use a custom validate
     // function to set it to *something*.

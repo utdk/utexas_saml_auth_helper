@@ -10,30 +10,39 @@
  */
 function utexas_saml_auth_helper_install() {
 
-  // Disable the open registration to the site and store the original setting.
+  // Disable the open registration to the site.
   $config = \Drupal::configFactory()->getEditable('simplesamlphp_auth.settings');
   $config->set('register_users', FALSE);
   $config->save();
 
+  // Set new registration mail message to UT EID context.
+  $auth_helper_settings = \Drupal::configFactory()->getEditable('utexas_saml_auth_helper.settings');
   $mail_settings = \Drupal::configFactory()->getEditable('user.mail');
-  $new_message = [
-    'body' => '[user:display-name],\n\nA site administrator at [site:name] has created an account for you. You may now log in with your EID by clicking this link or copying and pasting it to your browser:\n\n[site:url]saml_login\n\nNote: if you were not expecting this email, instead contact your supervisor to verify the authenticity of this notification.\n\n--  [site:name] team',
-    'subject' => 'An administrator created an account for you at [site:name]',
-  ];
 
+  // Store original mail settings for uninstall.
+  $auth_helper_settings->set('register_admin_created', $mail_settings->get('register_admin_created'));
+  $auth_helper_settings->set('status_activated', $mail_settings->get('status_activated'));
+  $auth_helper_settings->save();
+
+  // Save new values.
+  $new_message = [
+    'body' => $auth_helper_settings->get('mail_body'),
+    'subject' => $auth_helper_settings->get('mail_subject'),
+  ];
   $mail_settings->set('register_admin_created', $new_message);
   $mail_settings->set('status_activated', $new_message);
   $mail_settings->save();
+
 }
 
 /**
  * Implements hook_uninstall().
  */
 function utexas_saml_auth_helper_uninstall() {
-
-  // Restore the original user registration directive.
-  $user_settings = \Drupal::configFactory()->getEditable('user.settings');
-  $config = \Drupal::config('simplesamlphp_auth.settings');
-  $user_settings->set('register', $config->get('user_register_original'));
-  $user_settings->save();
+  // Restore the original mail registration messages.
+  $original = \Drupal::configFactory()->getEditable('utexas_saml_auth_helper.settings');
+  $mail_settings = \Drupal::configFactory()->getEditable('user.mail');
+  $mail_settings->set('register_admin_created', $original->get('register_admin_created'));
+  $mail_settings->set('status_activated', $original->get('status_activated'));
+  $mail_settings->save();
 }
