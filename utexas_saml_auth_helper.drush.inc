@@ -45,7 +45,7 @@ function drush_utexas_saml_auth_helper_saml_convert($type = 'choose') {
   elseif (!in_array($type, $correct_args)) {
     if (!($user = user_load_by_name($type))) {
       // The user doesn't exist in the system.
-      return drush_set_error(dt('"@type" is not a valid argument or username. Provide the parameter "all" (convert all users), "choose" (iterate through individually), or a valid username.', array('@type' => $type)));
+      return drush_set_error(dt('"@type" is not a valid argument or username. Provide the parameter "all" (convert all users), "choose" (iterate through individually), or a valid username.', ['@type' => $type]));
     }
     elseif ($user->id() == 1) {
       return drush_set_error(dt('The administrative user cannot be converted to SAML login.'));
@@ -93,15 +93,14 @@ function _utexas_saml_auth_helper_convert_eligible_users() {
  * Load all active users with the authenticated user role, excepting user 1.
  */
 function _utexas_saml_auth_helper_get_eligible_users() {
-  $eligible = array();
-
+  $eligible = [];
   $query = \Drupal::entityQuery('user')
     ->condition('status', 1)
     ->condition('uid', '1', '!=');
   $users = $query->execute();
   if (!empty($users)) {
     $accounts = User::loadMultiple(array_keys($users));
-    foreach ($accounts as $user) {
+    foreach ($accounts as $uid => $user) {
       // Check if the username is a possible EID.
       if (preg_match('/^[a-z0-9][a-z0-9._-]{1,7}$/', $user->getAccountName())) {
         $eligible[$uid] = $user;
@@ -138,11 +137,11 @@ function _utexas_saml_auth_helper_iterate() {
 /**
  * Print informative messages.
  */
-function _utexas_saml_auth_helper_results($converted = array()) {
+function _utexas_saml_auth_helper_results($converted = []) {
   if (empty($converted)) {
     drush_log(dt('No accounts on this site were eligible for conversion. No changes have been made.'), 'success');
   }
   else {
-    drush_log(dt('The following accounts have been converted to SAML login: @accounts.', array('@accounts' => implode(', ', $converted))), 'success');
+    drush_log(dt('The following accounts have been converted to SAML login: @accounts.', ['@accounts' => implode(', ', $converted)]), 'success');
   }
 }
