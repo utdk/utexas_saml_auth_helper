@@ -1,3 +1,4 @@
 utexas_saml_auth_helper_iid_domain: eid.utexas.edu
 mail_body: "[user:display-name],\n\nA site administrator at [site:name] has created an account for you. You may now log in with your EID by clicking this link or copying and pasting it to your browser:\n\n[site:url]saml_login\n\nNote: if you were not expecting this email, instead contact your supervisor to verify the authenticity of this notification.\n\n--  [site:name] team"
 mail_subject: 'An administrator created an account for you at [site:name]'
+manual_email: false
