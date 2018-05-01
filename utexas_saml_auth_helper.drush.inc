@@ -30,7 +30,7 @@ function utexas_saml_auth_helper_drush_command() {
  * Controller callback. Convert users to SAML login.
  *
  * @param string $type
- *    One of three acceptable arguments as listed above.
+ *   One of three acceptable arguments as listed above.
  */
 function drush_utexas_saml_auth_helper_saml_convert($type = 'choose') {
   // Check for correct argument.
