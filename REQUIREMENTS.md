@@ -34,4 +34,3 @@ This file aims to outline the required architecture for the utexas_saml_auth_hel
 * *utexas_saml_auth_helper.drush.inc*
   * Define a drush command for converting all eligible users to SAML login
     * This should provide a way for a developer to pass a particular username or "all" to be converted to SAML login.
-
