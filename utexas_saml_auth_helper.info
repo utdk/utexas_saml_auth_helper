@@ -1,0 +1,7 @@
+name = UTexas SAML authentication helper
+description = Makes SimpleSAMLphp Auth easier for UT Drupal installs
+core = 7.x
+php = 5.3
+version = UTEXAS_DISTRO_VERSION
+
+dependencies[] = simplesamlphp_auth

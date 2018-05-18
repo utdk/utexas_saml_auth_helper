@@ -2,52 +2,104 @@
 
 /**
  * @file
- * The install file for the simplesamlphp_auth module.
+ * Install file for UTexas SAML Auth Helper module.
  */
 
 /**
  * Implements hook_install().
  */
 function utexas_saml_auth_helper_install() {
+  // Default to users not being auto-provisioned.
+  variable_set('simplesamlphp_auth_registerusers', 0);
 
-  // Disable the open registration to the site.
-  $config = \Drupal::configFactory()->getEditable('simplesamlphp_auth.settings');
-  $config->set('register_users', FALSE);
-  $config->save();
+  // Default to only User 1 allowed to login via Drupal.
+  // If left blank, all local accounts can login.
+  variable_set('simplesamlphp_auth_allowdefaultloginusers', "1");
 
-  // Set new registration mail message to UT EID context.
-  $auth_helper_settings = \Drupal::configFactory()->getEditable('utexas_saml_auth_helper.settings');
-  $mail_settings = \Drupal::configFactory()->getEditable('user.mail');
+  // Set the initial value for the schema version.
+  drupal_set_installed_schema_version('utexas_saml_auth_helper', 7102);
 
-  // Store original mail settings for uninstall.
-  $auth_helper_settings->set('register_admin_created', $mail_settings->get('register_admin_created'));
-  $auth_helper_settings->set('status_activated', $mail_settings->get('status_activated'));
-  $auth_helper_settings->save();
+  // Add the 'change saml authentication setting' to the Site Manager role.
+  $role = user_role_load_by_name('Site Manager');
+  if ($role) {
+    $grant = ['change saml authentication setting'];
+    user_role_grant_permissions($role->rid, $grant);
+    watchdog('utexas_saml_auth_helper', 'Site Manager role granted permission to change saml authentication setting', NULL, WATCHDOG_NOTICE);
+  }
+}
 
-  // Save new values.
-  $new_message = [
-    'body' => $auth_helper_settings->get('mail_body'),
-    'subject' => $auth_helper_settings->get('mail_subject'),
-  ];
-  $mail_settings->set('register_admin_created', $new_message);
-  $mail_settings->set('status_activated', $new_message);
-  $mail_settings->save();
+/**
+ * Implements hook_enable().
+ */
+function utexas_saml_auth_helper_enable() {
+  _utexas_saml_auth_helper_add_settings();
+}
 
+/**
+ * Implements hook_update_N().
+ *
+ * Update email message for new accounts & restrict new accounts from visitors.
+ */
+function utexas_saml_auth_helper_update_7101() {
+  _utexas_saml_auth_helper_add_settings();
+}
+
+/**
+ * Custom function to do SAML-related variable sets.
+ */
+function _utexas_saml_auth_helper_add_settings() {
+  $body = '[user:name],
+
+A site administrator at [site:name] has created an account for you. You may now log in with your EID by clicking this link or copying and pasting it to your browser:
+
+[site:url]saml_login
+
+Note: if you were not expecting this email, instead contact your supervisor to verify the authenticity of this notification.
+
+--  [site:name] team';
+
+  variable_set('user_mail_register_admin_created_body', $body);
+  variable_set('user_mail_status_activated_body', $body);
+}
+
+/**
+ * Implements hook_disable().
+ */
+function utexas_saml_auth_helper_disable() {
+  variable_del('user_mail_register_admin_created_body');
+  variable_del('user_mail_status_activated_body');
 }
 
 /**
  * Implements hook_uninstall().
+ *
+ * Delete all authmap records where module is "simplesamlphp_auth",
+ * effectively converting all SAML users to regular Drupal users,
+ * and remove simplesamlphp_auth variables.
  */
 function utexas_saml_auth_helper_uninstall() {
-  // Delete all authmap records related to SAML authentication.
-  $query = \Drupal::database()->delete('authmap');
-  $query->condition('provider', 'simplesamlphp_auth');
-  $query->execute();
+  db_delete('authmap')->condition('module', 'simplesamlphp_auth')->execute();
 
-  // Restore the original mail registration messages.
-  $original = \Drupal::configFactory()->getEditable('utexas_saml_auth_helper.settings');
-  $mail_settings = \Drupal::configFactory()->getEditable('user.mail');
-  $mail_settings->set('register_admin_created', $original->get('register_admin_created'));
-  $mail_settings->set('status_activated', $original->get('status_activated'));
-  $mail_settings->save();
+  // Clean up SAML-related variables.
+  variable_del('simplesamlphp_auth_registerusers');
+  variable_del('simplesamlphp_auth_allowdefaultloginusers');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Set default simplesamlphp_auth variables for existing sites which do
+ * not have values set.
+ */
+function utexas_saml_auth_helper_update_7102() {
+  // Set auto-provisioning to disabled.
+  if (variable_get('simplesamlphp_auth_registerusers', '') == '') {
+    variable_set('simplesamlphp_auth_registerusers', 0);
+  }
+
+  // Allow only User 1 to login via Drupal.
+  // If left blank, all local accounts can login.
+  if (variable_get('simplesamlphp_auth_allowdefaultloginusers', '') == '') {
+    variable_set('simplesamlphp_auth_allowdefaultloginusers', "1");
+  }
 }

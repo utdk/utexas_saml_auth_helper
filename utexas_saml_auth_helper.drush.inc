@@ -5,8 +5,6 @@
  * Drush integration for the utexas_saml_auth_helper module.
  */
 
-use Drupal\user\Entity\User;
-
 /**
  * Implements hook_drush_command().
  *
@@ -14,14 +12,14 @@ use Drupal\user\Entity\User;
  */
 function utexas_saml_auth_helper_drush_command() {
 
-  $items['saml-convert'] = [
+  $items['saml-convert'] = array(
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'description' => 'Demonstrate how Drush commands work.',
-    'aliases' => ['usc'],
-    'arguments' => [
+    'aliases' => array('usc'),
+    'arguments' => array(
       'type' => 'The type of operation: "all", "choose", or a valid username.',
-    ],
-  ];
+    ),
+  );
 
   return $items;
 }
@@ -30,12 +28,12 @@ function utexas_saml_auth_helper_drush_command() {
  * Controller callback. Convert users to SAML login.
  *
  * @param string $type
- *   One of three acceptable arguments as listed above.
+ *    One of three acceptable arguments as listed above.
  */
 function drush_utexas_saml_auth_helper_saml_convert($type = 'choose') {
   // Check for correct argument.
-  $converted = [];
-  $correct_args = ['all', 'choose'];
+  $converted = array();
+  $correct_args = array('all', 'choose');
   if ($type == 'all') {
     $converted = _utexas_saml_auth_helper_convert_eligible_users();
   }
@@ -45,16 +43,16 @@ function drush_utexas_saml_auth_helper_saml_convert($type = 'choose') {
   elseif (!in_array($type, $correct_args)) {
     if (!($user = user_load_by_name($type))) {
       // The user doesn't exist in the system.
-      return drush_set_error(dt('"@type" is not a valid argument or username. Provide the parameter "all" (convert all users), "choose" (iterate through individually), or a valid username.', ['@type' => $type]));
+      return drush_set_error(dt('"@type" is not a valid argument or username. Provide the parameter "all" (convert all users), "choose" (iterate through individually), or a valid username.', array('@type' => $type)));
     }
-    elseif ($user->id() == 1) {
+    elseif ($user->uid == 1) {
       return drush_set_error(dt('The administrative user cannot be converted to SAML login.'));
     }
     else {
       // Validate as a possible EID using a regular expression match.
-      if (preg_match('/^[a-z0-9][a-z0-9._-]{1,7}$/', $user->getAccountName())) {
+      if (preg_match('/^[a-z0-9][a-z0-9._-]{1,7}$/', $user->name)) {
         // It is a user in the system.
-        $converted[] = _utexas_saml_auth_helper_convert($user->id(), $user->getAccountName());
+        $converted[] = _utexas_saml_auth_helper_convert($user->uid, $user->name);
       }
     }
   }
@@ -68,8 +66,13 @@ function drush_utexas_saml_auth_helper_saml_convert($type = 'choose') {
 function _utexas_saml_auth_helper_convert($uid = NULL, $name = NULL) {
   if (isset($uid) && isset($name) && $uid != 1) {
     db_merge('authmap')
-      ->key(['uid' => $uid, 'provider' => 'simplesamlphp_auth'])
-      ->fields(['authname' => $name, 'data' => serialize(NULL)])
+      ->key(array(
+        'uid' => $uid,
+        'module' => 'simplesamlphp_auth',
+      ))
+      ->fields(array(
+        'authname' => $name,
+      ))
       ->execute();
     return $name;
   }
@@ -79,11 +82,11 @@ function _utexas_saml_auth_helper_convert($uid = NULL, $name = NULL) {
  * Callback for the "all" argument. Automatically converts all eligible users.
  */
 function _utexas_saml_auth_helper_convert_eligible_users() {
-  $converted = [];
+  $converted = array();
   $eligible = _utexas_saml_auth_helper_get_eligible_users();
   if (!empty($eligible)) {
     foreach ($eligible as $user) {
-      $converted[] = _utexas_saml_auth_helper_convert($user->id(), $user->getAccountName());
+      $converted[] = _utexas_saml_auth_helper_convert($user->uid, $user->name);
     }
   }
   return $converted;
@@ -93,16 +96,17 @@ function _utexas_saml_auth_helper_convert_eligible_users() {
  * Load all active users with the authenticated user role, excepting user 1.
  */
 function _utexas_saml_auth_helper_get_eligible_users() {
-  $eligible = [];
-  $query = \Drupal::entityQuery('user')
-    ->condition('status', 1)
-    ->condition('uid', '1', '!=');
-  $users = $query->execute();
-  if (!empty($users)) {
-    $accounts = User::loadMultiple(array_keys($users));
+  $eligible = array();
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->propertyCondition('status', 1)
+    ->propertyCondition('uid', '1', '!=');
+  $result = $query->execute();
+  if (!empty($result['user'])) {
+    $accounts = user_load_multiple(array_keys($result['user']));
     foreach ($accounts as $uid => $user) {
       // Check if the username is a possible EID.
-      if (preg_match('/^[a-z0-9][a-z0-9._-]{1,7}$/', $user->getAccountName())) {
+      if (preg_match('/^[a-z0-9][a-z0-9._-]{1,7}$/', $user->name)) {
         $eligible[$uid] = $user;
       }
     }
@@ -114,20 +118,19 @@ function _utexas_saml_auth_helper_get_eligible_users() {
  * Callback for the "choose" argument. Conditionally convert eligible users.
  */
 function _utexas_saml_auth_helper_iterate() {
-  $converted = [];
-  $options = [
+  $converted = array();
+  $options = array(
     'yes' => dt('Yes'),
-  ];
+  );
   $eligible = _utexas_saml_auth_helper_get_eligible_users();
 
   if (!empty($eligible)) {
     foreach ($eligible as $user) {
       // Check regex for EID.
-      $name = $user->getAccountName();
-      $choice = drush_choice($options, dt('Convert username "@user" ?', ['@user' => $name]));
+      $choice = drush_choice($options, dt('Convert username "@user" ?', array('@user' => $user->name)));
       if ($choice == 'yes') {
-        _utexas_saml_auth_helper_convert($user->id(), $name);
-        $converted[] = $name;
+        _utexas_saml_auth_helper_convert($user->uid, $user->name);
+        $converted[] = $user->name;
       }
     }
   }
@@ -137,11 +140,11 @@ function _utexas_saml_auth_helper_iterate() {
 /**
  * Print informative messages.
  */
-function _utexas_saml_auth_helper_results($converted = []) {
+function _utexas_saml_auth_helper_results($converted = array()) {
   if (empty($converted)) {
     drush_log(dt('No accounts on this site were eligible for conversion. No changes have been made.'), 'success');
   }
   else {
-    drush_log(dt('The following accounts have been converted to SAML login: @accounts.', ['@accounts' => implode(', ', $converted)]), 'success');
+    drush_log(dt('The following accounts have been converted to SAML login: @accounts.', array('@accounts' => implode(', ', $converted))), 'success');
   }
 }
