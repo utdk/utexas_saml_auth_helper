@@ -13,7 +13,7 @@ This file aims to outline the required architecture for the utexas_saml_auth_hel
 
 * *utexas_saml_auth_helper.module*
   * `hook_form_FORM_ID_alter` for the user registration/edit form.
-    * Modify form element for "This is a SAML account" to "This is a UTLogin account"
+    * Modify form element for "This is a SAML account" to "This is an Enterprise Authentication account"
     * Set password form element to #access=FALSE and #required=FALSE.
     * Disable editing the username for already-created accounts.
     * Set email form element to #disabled=TRUE and #required=FALSE.

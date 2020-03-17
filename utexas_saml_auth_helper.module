@@ -35,7 +35,7 @@ function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_sta
       $form['simplesamlphp_auth_user_enable']['#disabled'] = TRUE;
     }
 
-    $form['simplesamlphp_auth_user_enable']['#title'] = 'This is a UTLogin account.';
+    $form['simplesamlphp_auth_user_enable']['#title'] = 'This is an Enterprise Authentication account.';
     $form['simplesamlphp_auth_user_enable']['#description'] = '';
     $form['simplesamlphp_auth_user_enable']['#weight'] = -100;
 
