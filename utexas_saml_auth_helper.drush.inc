@@ -67,7 +67,7 @@ function drush_utexas_saml_auth_helper_saml_convert($type = 'choose') {
  */
 function _utexas_saml_auth_helper_convert($uid = NULL, $name = NULL) {
   if (isset($uid) && isset($name) && $uid != 1) {
-    db_merge('authmap')
+    \Drupal::database()->merge('authmap')
       ->key(['uid' => $uid, 'provider' => 'simplesamlphp_auth'])
       ->fields(['authname' => $name, 'data' => serialize(NULL)])
       ->execute();
@@ -139,9 +139,13 @@ function _utexas_saml_auth_helper_iterate() {
  */
 function _utexas_saml_auth_helper_results($converted = []) {
   if (empty($converted)) {
-    drush_log(dt('No accounts on this site were eligible for conversion. No changes have been made.'), 'success');
+    $message = dt('No accounts on this site were eligible for conversion. No changes have been made.');
+    \Drupal::messenger()->addMessage($message);
+    \Drupal::logger('utexas_saml_auth_helper')->notice($message);
   }
   else {
-    drush_log(dt('The following accounts have been converted to SAML login: @accounts.', ['@accounts' => implode(', ', $converted)]), 'success');
+    $message = dt('The following accounts have been converted to SAML login: @accounts.', ['@accounts' => implode(', ', $converted)]);
+    \Drupal::messenger()->addMessage($message);
+    \Drupal::logger('utexas_saml_auth_helper')->notice($message);
   }
 }
