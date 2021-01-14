@@ -139,9 +139,13 @@ function _utexas_saml_auth_helper_iterate() {
  */
 function _utexas_saml_auth_helper_results($converted = []) {
   if (empty($converted)) {
-    \Drupal::logger(dt('No accounts on this site were eligible for conversion. No changes have been made.'), 'success');
+    $message = dt('No accounts on this site were eligible for conversion. No changes have been made.');
+    \Drupal::messenger()->addMessage($message);
+    \Drupal::logger('utexas_saml_auth_helper')->notice($message);
   }
   else {
-    \Drupal::logger(dt('The following accounts have been converted to SAML login: @accounts.', ['@accounts' => implode(', ', $converted)]), 'success');
+    $message = dt('The following accounts have been converted to SAML login: @accounts.', ['@accounts' => implode(', ', $converted)]);
+    \Drupal::messenger()->addMessage($message);
+    \Drupal::logger('utexas_saml_auth_helper')->notice($message);
   }
 }
