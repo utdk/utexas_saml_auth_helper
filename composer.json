@@ -11,7 +11,6 @@
     "source": "https://github.austin.utexas.edu/eis1-wcs/utexas_saml_auth_helper"
   },
   "require": {
-      "composer/installers": "~1.0",
       "php": ">=5.6.0"
   },
   "config": {
