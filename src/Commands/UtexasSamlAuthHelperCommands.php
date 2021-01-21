@@ -46,7 +46,7 @@ class UtexasSamlAuthHelperCommands extends DrushCommands {
           // Validate as a possible EID using a regular expression match.
           if (preg_match('/^[a-z0-9][a-z0-9._-]{1,7}$/', $user->getAccountName())) {
             // It is a user in the system.
-            $results[] = $this->execute($user->id(), $user->getAccountName());
+            $results[] = $this->convertUser($user->id(), $user->getAccountName());
           }
           else {
             throw new \Exception(dt('"input" is a user in the system but does not appear to be a valid EID.', ['@input' => $input]));
