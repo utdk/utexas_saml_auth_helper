@@ -1,6 +1,6 @@
 {
   "name": "utexas/utexas_saml_auth_helper",
-  "type": "drupal-module",
+  "type": "drupal-custom-module",
   "description": "This is a Drupal module that provides UTexas-focused UI tweaks to the contributed simplesamlphp_auth module.",
   "keywords": ["Drupal"],
   "license": ["GPL-2.0-or-later"],
