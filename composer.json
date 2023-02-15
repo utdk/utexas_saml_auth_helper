@@ -10,9 +10,6 @@
     "issues": "https://github.austin.utexas.edu/eis1-wcs/utexas_saml_auth_helper/issues",
     "source": "https://github.austin.utexas.edu/eis1-wcs/utexas_saml_auth_helper"
   },
-  "require": {
-      "php": ">=5.6.0"
-  },
   "config": {
     "sort-packages": true
   },

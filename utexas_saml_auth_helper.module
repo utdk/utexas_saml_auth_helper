@@ -28,6 +28,9 @@ function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_sta
     // For non-registration forms, disable editing the username.
     if ($form_id == 'user_form') {
       $form['account']['name']['#disabled'] = TRUE;
+
+      // Turn off Current password field's validation
+      $form_state->set('user_pass_reset', 1);
     }
 
     $form['simplesamlphp_auth_user_enable']['#default_value'] = TRUE;
