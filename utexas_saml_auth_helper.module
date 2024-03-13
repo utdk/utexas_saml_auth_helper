@@ -28,6 +28,9 @@ function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_sta
     // For non-registration forms, disable editing the username.
     if ($form_id == 'user_form') {
       $form['account']['name']['#disabled'] = TRUE;
+
+      // Turn off Current password field's validation
+      $form_state->set('user_pass_reset', 1);
     }
 
     $form['simplesamlphp_auth_user_enable']['#default_value'] = TRUE;
@@ -107,4 +110,12 @@ function _utexas_saml_auth_helper_user_validate_name($name) {
     return t('The entered UT EID is not valid.');
   }
   return FALSE;
+}
+
+/**
+ * Implements hook_plugin_filter_TYPE__CONSUMER_alter().
+ */
+function utexas_saml_auth_helper_plugin_filter_block__layout_builder_alter(array &$definitions) {
+  // Explicitly remove blocks from the list.
+  unset($definitions['simplesamlphp_auth_block']);
 }

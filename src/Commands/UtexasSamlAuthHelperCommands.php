@@ -65,6 +65,7 @@ class UtexasSamlAuthHelperCommands extends DrushCommands {
   private function getEligibleUsers() {
     $eligible = [];
     $query = \Drupal::entityQuery('user')
+      ->accessCheck(FALSE)
       ->condition('status', 1)
       ->condition('uid', '1', '!=');
     $users = $query->execute();
