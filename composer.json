@@ -12,12 +12,5 @@
   },
   "config": {
     "sort-packages": true
-  },
-  "extra": {
-      "drush": {
-          "services": {
-              "drush.services.yml": "^9"
-          }
-      }
   }
 }
