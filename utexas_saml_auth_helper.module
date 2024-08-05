@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\UserInterface;
 
 /**
  * Implements hook_form_alter().
@@ -29,7 +30,7 @@ function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_sta
     if ($form_id == 'user_form') {
       $form['account']['name']['#disabled'] = TRUE;
 
-      // Turn off Current password field's validation
+      // Turn off Current password field's validation.
       $form_state->set('user_pass_reset', 1);
     }
 
@@ -49,6 +50,19 @@ function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_sta
     $form['account']['name']['#title'] = t('Username (UT EID)');
     $form['account']['name']['#weight'] = -2;
     $form['account']['name']['#description'] = t("Most Texas affiliates' EIDs can be obtained via <a href='https://directory.utexas.edu/'>https://directory.utexas.edu/</a>.");
+
+    $moduleHandler = \Drupal::service('module_handler');
+    if (!$moduleHandler->moduleExists('externalauth')) {
+      return;
+    }
+    $account = $form_state->getFormObject()->getEntity();
+    $authmap = \Drupal::service('externalauth.authmap');
+    $saml_enabled = $account->id() && $authmap->get($account->id(), 'simplesamlphp_auth');
+    if ($saml_enabled || $form_id === 'user_register_form') {
+      $form['field_utexas_full_name']['#disabled'] = TRUE;
+      $description = $form['field_utexas_full_name']['widget'][0]['value']['#description'];
+      $form['field_utexas_full_name']['widget'][0]['value']['#description'] = t('@description This is populated automatically by University of Texas account information. It can be changed by <a href="https://utexas.app.box.com/s/yg4c4u0dqjrmz8jej7d9ylrofpteo5rf">updating the preferred name in Workday</a>.', ['@description' => $description]);
+    }
 
     $manual_email = \Drupal::config('utexas_saml_auth_helper.settings')->get('manual_email');
     if (!$manual_email) {
@@ -118,4 +132,30 @@ function _utexas_saml_auth_helper_user_validate_name($name) {
 function utexas_saml_auth_helper_plugin_filter_block__layout_builder_alter(array &$definitions) {
   // Explicitly remove blocks from the list.
   unset($definitions['simplesamlphp_auth_block']);
+}
+
+/**
+ * Hook to alter a Drupal user account after SAML authentication.
+ *
+ * Allows other modules to change fields or properties on the Drupal account
+ * after a user logged in through SimpleSAMLphp. This can be used to add
+ * map additional SAML attributes to Drupal user profile fields.
+ *
+ * @param \Drupal\user\UserInterface $account
+ *   The Drupal account that can be altered.
+ * @param array $attributes
+ *   The SimpleSAMLphp attributes for this user.
+ *
+ * @return \Drupal\user\UserInterface|bool
+ *   The altered Drupal account or FALSE if nothing was changed.
+ */
+function utexas_saml_auth_helper_simplesamlphp_auth_user_attributes(UserInterface $account, $attributes) {
+  $saml_name = $attributes['displayName'];
+  if (isset($saml_name[0]) && mb_strlen($saml_name[0])) {
+    if ($account->hasField('field_utexas_full_name')) {
+      $account->set('field_utexas_full_name', $saml_name[0]);
+    }
+    return $account;
+  }
+  return FALSE;
 }
