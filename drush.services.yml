@@ -1,0 +1,5 @@
+services:
+  utexas_saml_auth_helper.commands:
+    class: \Drupal\utexas_saml_auth_helper\Commands\UtexasSamlAuthHelperCommands
+    tags:
+      - { name: drush.command }
