@@ -7,76 +7,21 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\UserInterface;
+use Drupal\utexas_saml_auth_helper\SamlAuthConfigurator;
 
 /**
  * Implements hook_form_alter().
  */
 function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  $activated = \Drupal::config('simplesamlphp_auth.settings')->get('activate');
-  if (!$activated) {
+  if (!\Drupal::moduleHandler()->moduleExists('samlauth') && !\Drupal::moduleHandler()->moduleExists('simplesamlphp_auth')) {
     return;
   }
+  if ($form_id === 'samlauth_configure_form') {
+    _utexas_saml_auth_helper_samlauth($form);
+  }
   $user_forms = ['user_form', 'user_register_form'];
-  // For new user registrations, remove the password field and make it not
-  // required, and enforce enabling the SAML option.
   if (in_array($form_id, $user_forms)) {
-    $account = $form_state->getFormObject()->getEntity();
-    // These alterations don't apply to User 1.
-    if ($account->id() == 1) {
-      return;
-    }
-
-    // For non-registration forms, disable editing the username.
-    if ($form_id == 'user_form') {
-      $form['account']['name']['#disabled'] = TRUE;
-
-      // Turn off Current password field's validation.
-      $form_state->set('user_pass_reset', 1);
-    }
-
-    $form['simplesamlphp_auth_user_enable']['#default_value'] = TRUE;
-    $form['simplesamlphp_auth_user_enable']['#disabled'] = TRUE;
-    $form['simplesamlphp_auth_user_enable']['#title'] = 'This is an Enterprise Authentication account.';
-    $form['simplesamlphp_auth_user_enable']['#description'] = '';
-    $form['simplesamlphp_auth_user_enable']['#weight'] = -100;
-
-    // Password is not required and may not be set (the field will be hidden).
-    // NOTE: password already removed when *editing* the profile of an existing
-    // user that has SAML enabled, so in this module we only need to disable it
-    // for user registrations.
-    $form['account']['pass']['#access'] = FALSE;
-    $form['account']['pass']['#required'] = FALSE;
-    $form['account']['current_pass']['#access'] = FALSE;
-    $form['account']['name']['#title'] = t('Username (UT EID)');
-    $form['account']['name']['#weight'] = -2;
-    $form['account']['name']['#description'] = t("Most Texas affiliates' EIDs can be obtained via <a href='https://directory.utexas.edu/'>https://directory.utexas.edu/</a>.");
-
-    $moduleHandler = \Drupal::service('module_handler');
-    if (!$moduleHandler->moduleExists('externalauth')) {
-      return;
-    }
-    if (isset($form['field_utexas_full_name'])) {
-      $account = $form_state->getFormObject()->getEntity();
-      $authmap = \Drupal::service('externalauth.authmap');
-      $saml_enabled = $account->id() && $authmap->get($account->id(), 'simplesamlphp_auth');
-      if ($saml_enabled || $form_id === 'user_register_form') {
-        $form['field_utexas_full_name']['#disabled'] = TRUE;
-        $description = $form['field_utexas_full_name']['widget'][0]['value']['#description'];
-        $form['field_utexas_full_name']['widget'][0]['value']['#description'] = t('@description This is populated automatically by University of Texas account information. It can be changed by <a href="https://utexas.app.box.com/s/yg4c4u0dqjrmz8jej7d9ylrofpteo5rf">updating the preferred name in Workday</a>.', ['@description' => $description]);
-      }
-    }
-
-    $manual_email = \Drupal::config('utexas_saml_auth_helper.settings')->get('manual_email');
-    if (!$manual_email) {
-      // Email address is not required.
-      $form['account']['mail']['#required'] = FALSE;
-      $form['account']['mail']['#disabled'] = TRUE;
-      $form['account']['mail']['#weight'] = -1;
-      $form['account']['mail']['#description'] = t('This field cannot be modified manually; it will be filled in from UT EID attributes when the user logs in. All e-mails from the system will be sent to this address. The e-mail address is not made public and will only be used if you wish to receive certain news or notifications by e-mail.');
-      // The email address can't actually be blank, so we use a custom validate
-      // function to set it to *something*.
-      array_unshift($form['#validate'], 'utexas_saml_auth_helper_user_account_form_validate');
-    }
+    _utexas_saml_auth_helper_user_forms($form, $form_state, $form_id);
   }
 }
 
@@ -160,4 +105,160 @@ function utexas_saml_auth_helper_simplesamlphp_auth_user_attributes(UserInterfac
     return $account;
   }
   return FALSE;
+}
+
+function _utexas_saml_auth_helper_samlauth(&$form) {
+  $settings = SamlAuthConfigurator::getSettings();
+  $overrides = [
+    'ui' => [
+      'login_link_title' => $settings['login_link_title'],
+      'login_menu_item_title' => $settings['login_menu_item_title'],
+      'logout_menu_item_title' => $settings['logout_menu_item_title'],
+    ],
+    'user_info' => [
+      'unique_id_attribute' => $settings['unique_id_attribute'],
+      'unique_id_source' => 1,
+      'linking' => [
+        'map_users_name' => $settings['map_users_name'],
+        'map_users_mail' => $settings['map_users_mail'],
+        'map_users_roles' => $settings['map_users_roles'],
+        'allow_all_roles' => TRUE,
+      ],
+      'nameid' => [
+        'request_set_name_id_policy' => $settings['request_set_name_id_policy'],
+      ],
+      'sync_name' => $settings['sync_name'],
+      'sync_mail' => $settings['sync_mail'],
+      'user_name_attribute' => $settings['user_name_attribute'],
+      'user_mail_attribute' => $settings['user_mail_attribute'],
+    ],
+    'caching' => [
+      'metadata_cache_http' => $settings['metadata_cache_http'],
+    ],
+    'service_provider' => [
+      'sp_entity_id' => $settings['sp_entity_id'],
+      'sp_key_cert_type' => 'file',
+      'sp_key_file' => $settings['sp_private_key'],
+      'sp_cert_file' => $settings['sp_x509_certificate'],
+      'sp_new_cert_file' => '',
+      'security_metadata_sign' => $settings['security_metadata_sign'],
+      'caching' => [
+        'metadata_cache_http' => $settings['metadata_cache_http'],
+        'metadata_valid_secs' => $settings['metadata_valid_secs'],
+      ]
+    ],
+    'identity_provider' => [
+      'idp_entity_id' => $settings['idp_entity_id'],
+      'idp_single_sign_on_service' => $settings['idp_single_sign_on_service'],
+      'idp_single_log_out_service' => $settings['idp_single_log_out_service'],
+      'idp_cert_type' => 'file',
+      'idp_certs' => [
+        0 => [
+          'file' => $settings['idp_certs'][0],
+        ],
+      ],
+    ],
+    'construction' => [
+      'security_authn_requests_sign' => $settings['security_authn_requests_sign'],
+      'security_logout_requests_sign' => $settings['security_logout_requests_sign'],
+      'security_logout_responses_sign' => $settings['security_logout_responses_sign'],
+      'security_nameid_encrypt' => $settings['security_nameid_encrypt'],
+      'security_request_authn_context' => $settings['security_request_authn_context'],
+      'sp_name_id_format' => $settings['sp_name_id_format'],
+    ],
+    'responses' => [
+      'security_want_name_id' => $settings['security_want_name_id'],
+      'security_allow_repeat_attribute_name' => $settings['security_allow_repeat_attribute_name'],
+      'security_logout_reuse_sigs' => $settings['security_logout_reuse_sigs'],
+      'strict' => $settings['strict'],
+      'security_messages_sign' => $settings['security_messages_sign'],
+      'security_assertions_signed' => $settings['security_assertions_signed'],
+      'security_assertions_encrypt' => $settings['security_assertions_encrypt'],
+      'security_nameid_encrypted' => $settings['security_nameid_encrypted'],
+    ],
+  ];
+  foreach ($overrides as $group => $fields) {
+    foreach ($fields as $field => $value) {
+      if (is_array($value)) {
+        foreach ($value as $k => $v) {
+          if (isset($form[$group])) {
+            $form[$group][$field][$k]['#disabled'] = TRUE;
+            $form[$group][$field][$k]['#default_value'] = $v;
+            $form[$group][$field][$k]['#description'] = t('This value is set by the utexas_saml_auth_helper module.');
+          }
+        }
+      }
+      else {
+        if (isset($form[$group])) {
+          $form[$group][$field]['#disabled'] = TRUE;
+          $form[$group][$field]['#default_value'] = $value;
+          $form[$group][$field]['#description'] = t('This value is set by the utexas_saml_auth_helper module');
+        }
+      }
+    }
+  }
+  unset($form['user_info']['linking']['allow_all_roles']['#states']);
+  unset($form['user_info']['user_name_attribute']['#states']);
+  unset($form['user_info']['user_mail_attribute']['#states']);
+}
+
+function _utexas_saml_auth_helper_user_forms(&$form, FormStateInterface $form_state, $form_id) {
+  $account = $form_state->getFormObject()->getEntity();
+  // These alterations don't apply to User 1.
+  if ($account->id() == 1) {
+    return;
+  }
+  // For non-registration forms, disable editing the username.
+  if ($form_id == 'user_form') {
+    $form['account']['name']['#disabled'] = TRUE;
+    // Turn off Current password field's validation.
+    $form_state->set('user_pass_reset', 1);
+  }
+  $simplesamlphp_activated = \Drupal::config('simplesamlphp_auth.settings')->get('activate');
+  if ($simplesamlphp_activated) {
+    $form['simplesamlphp_auth_user_enable']['#default_value'] = TRUE;
+    $form['simplesamlphp_auth_user_enable']['#disabled'] = TRUE;
+    $form['simplesamlphp_auth_user_enable']['#title'] = 'This is an Enterprise Authentication account.';
+    $form['simplesamlphp_auth_user_enable']['#description'] = '';
+    $form['simplesamlphp_auth_user_enable']['#weight'] = -100;
+  }
+
+  // Password is not required and may not be set (the field will be hidden).
+  // NOTE: password already removed when *editing* the profile of an existing
+  // user that has SAML enabled, so in this module we only need to disable it
+  // for user registrations.
+  $form['account']['pass']['#access'] = FALSE;
+  $form['account']['pass']['#required'] = FALSE;
+  $form['account']['current_pass']['#access'] = FALSE;
+  $form['account']['name']['#title'] = t('Username (UT EID)');
+  $form['account']['name']['#weight'] = -2;
+  $form['account']['name']['#description'] = t("Most Texas affiliates' EIDs can be obtained via <a href='https://directory.utexas.edu/'>https://directory.utexas.edu/</a>.");
+
+  $moduleHandler = \Drupal::service('module_handler');
+  if (!$moduleHandler->moduleExists('externalauth')) {
+    return;
+  }
+  if (isset($form['field_utexas_full_name'])) {
+    if ($account->id()) {
+      $authmap = \Drupal::service('externalauth.authmap');
+      $saml_enabled = $authmap->get($account->id(), 'simplesamlphp_auth') || $authmap->get($account->id(), 'samlauth');
+      if ($saml_enabled || $form_id === 'user_register_form') {
+        $form['field_utexas_full_name']['#disabled'] = TRUE;
+        $description = $form['field_utexas_full_name']['widget'][0]['value']['#description'];
+        $form['field_utexas_full_name']['widget'][0]['value']['#description'] = t('@description This is populated automatically by University of Texas account information. It can be changed by <a href="https://utexas.app.box.com/s/yg4c4u0dqjrmz8jej7d9ylrofpteo5rf">updating the preferred name in Workday</a>.', ['@description' => $description]);
+      }
+    }
+  }
+
+  $manual_email = \Drupal::config('utexas_saml_auth_helper.settings')->get('manual_email');
+  if (!$manual_email) {
+    // Email address is not required.
+    $form['account']['mail']['#required'] = FALSE;
+    $form['account']['mail']['#disabled'] = TRUE;
+    $form['account']['mail']['#weight'] = -1;
+    $form['account']['mail']['#description'] = t('This field cannot be modified manually; it will be filled in from UT EID attributes when the user logs in. All e-mails from the system will be sent to this address. The e-mail address is not made public and will only be used if you wish to receive certain news or notifications by e-mail.');
+    // The email address can't actually be blank, so we use a custom validate
+    // function to set it to *something*.
+    array_unshift($form['#validate'], 'utexas_saml_auth_helper_user_account_form_validate');
+  }
 }

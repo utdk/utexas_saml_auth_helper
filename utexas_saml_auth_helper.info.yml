@@ -1,7 +1,7 @@
 name: UTexas SAML authentication helper
 type: module
-description: Provides UTexas-focused UI tweaks to the contributed simplesamlphp_auth module.
-core_version_requirement: ^10 || ^11
-version: '3.5.2'
+description: Provides UTexas-focused UI tweaks for SAML Authentication
+core_version_requirement: ">=10"
+version: '4.0.0'
 dependencies:
- - simplesamlphp_auth
+  - samlauth
