@@ -15,6 +15,34 @@ function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_sta
   if (!\Drupal::moduleHandler()->moduleExists('samlauth')) {
     return;
   }
+  if ($form_id === 'samlauth_configure_form') {
+    $host = \Drupal::request()->getSchemeAndHttpHost();
+    $disabled = [
+      'ui' => [
+        'login_link_title' => '',
+      ],
+      'user_info' => [
+        'unique_id_attribute' => '',
+      ],
+      'service_provider' => [
+        'sp_entity_id' => $host . '/onelogin',
+        'sp_key_cert_type' => '',
+        'sp_key_file' => '',
+        'sp_cert_file' => '',
+      ],
+      'identity_provider' => [
+        'idp_entity_id' => '',
+      ],
+    ];
+    //print_r(array_keys($form));
+    foreach ($disabled as $group => $fields) {
+      foreach ($fields as $field => $value) {
+        $form[$group][$field]['#disabled'] = TRUE;
+        $form[$group][$field]['#default_value'] = $value;
+      }
+    }
+
+  }
   $user_forms = ['user_form', 'user_register_form'];
   // For new user registrations, remove the password field and make it not
   // required, and enforce enabling the SAML option.
