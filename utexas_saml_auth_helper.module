@@ -12,8 +12,7 @@ use Drupal\user\UserInterface;
  * Implements hook_form_alter().
  */
 function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  $activated = \Drupal::config('simplesamlphp_auth.settings')->get('activate');
-  if (!$activated) {
+  if (!\Drupal::moduleHandler()->moduleExists('samlauth')) {
     return;
   }
   $user_forms = ['user_form', 'user_register_form'];

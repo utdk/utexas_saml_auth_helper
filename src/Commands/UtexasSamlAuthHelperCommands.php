@@ -89,8 +89,8 @@ class UtexasSamlAuthHelperCommands extends DrushCommands {
     $connection = \Drupal::database();
     if (isset($uid) && isset($name) && $uid != 1) {
       $connection->merge('authmap')
-        ->key(['uid' => $uid, 'provider' => 'simplesamlphp_auth'])
-        ->fields(['authname' => $name, 'data' => serialize(NULL)])
+        ->keys(['uid' => $uid, 'provider' => 'samlauth'])
+        ->fields(['authname' => $name, 'data' => ''])
         ->execute();
       return $name;
     }
