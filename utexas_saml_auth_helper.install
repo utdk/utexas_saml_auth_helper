@@ -10,10 +10,12 @@
  */
 function utexas_saml_auth_helper_install() {
 
-  // Disable the open registration to the site.
-  $config = \Drupal::configFactory()->getEditable('simplesamlphp_auth.settings');
-  $config->set('register_users', FALSE);
-  $config->save();
+  if (\Drupal::moduleHandler()->moduleExists('simplesamlphp_auth')) {
+    // Disable the open registration to the site.
+    $config = \Drupal::configFactory()->getEditable('simplesamlphp_auth.settings');
+    $config->set('register_users', FALSE);
+    $config->save();
+  }
 
   // Set new registration mail message to UT EID context.
   $auth_helper_settings = \Drupal::configFactory()->getEditable('utexas_saml_auth_helper.settings');
@@ -40,9 +42,16 @@ function utexas_saml_auth_helper_install() {
  */
 function utexas_saml_auth_helper_uninstall() {
   // Delete all authmap records related to SAML authentication.
-  $query = \Drupal::database()->delete('authmap');
-  $query->condition('provider', 'samlauth');
-  $query->execute();
+  if (\Drupal::moduleHandler()->moduleExists('simplesamlphp_auth')) {
+    $query = \Drupal::database()->delete('authmap');
+    $query->condition('provider', 'simplesamlphp_auth');
+    $query->execute();
+  }
+  if (\Drupal::moduleHandler()->moduleExists('samlauth')) {
+    $query = \Drupal::database()->delete('authmap');
+    $query->condition('provider', 'samlauth');
+    $query->execute();
+  }
 
   // Restore the original mail registration messages.
   $original = \Drupal::configFactory()->getEditable('utexas_saml_auth_helper.settings');

@@ -86,10 +86,14 @@ class UtexasSamlAuthHelperCommands extends DrushCommands {
    * Database manipulation. Merge new info into the authmap table.
    */
   private function convertUser($uid = NULL, $name = NULL) {
+    $provider = 'simplesamlphp_auth';
+    if (\Drupal::moduleHandler()->moduleExists('samlauth')) {
+      $provider = 'samlauth';
+    }
     $connection = \Drupal::database();
     if (isset($uid) && isset($name) && $uid != 1) {
       $connection->merge('authmap')
-        ->keys(['uid' => $uid, 'provider' => 'samlauth'])
+        ->keys(['uid' => $uid, 'provider' => $provider])
         ->fields(['authname' => $name, 'data' => ''])
         ->execute();
       return $name;
