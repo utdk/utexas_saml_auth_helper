@@ -31,7 +31,7 @@ class ConfigOverrides implements ConfigFactoryOverrideInterface {
    * {@inheritdoc}
    */
   public function getCacheSuffix() {
-    return 'UtNewsTeaserImageOverride';
+    return 'UtexasSamlAuthHelperOverrides';
   }
 
   /**
