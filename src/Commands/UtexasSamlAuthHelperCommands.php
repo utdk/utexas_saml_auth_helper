@@ -64,12 +64,20 @@ class UtexasSamlAuthHelperCommands extends DrushCommands {
    */
   private function getEligibleUsers() {
     $eligible = [];
+    // Dependency injection is more complicated code than static calls
+    // and therefore has a negative Developer Experience (DX) for our team.
+    // We mark these PHPCS standards as ignored.
+    // phpcs:ignore
     $query = \Drupal::entityQuery('user')
       ->accessCheck(FALSE)
       ->condition('status', 1)
       ->condition('uid', '1', '!=');
     $users = $query->execute();
     if (!empty($users)) {
+      // Dependency injection is more complicated code than static calls
+      // and therefore has a negative Developer Experience (DX) for our team.
+      // We mark these PHPCS standards as ignored.
+      // phpcs:ignore
       $accounts = User::loadMultiple(array_keys($users));
       foreach ($accounts as $uid => $user) {
         // Check if the username is a possible EID.
@@ -87,9 +95,17 @@ class UtexasSamlAuthHelperCommands extends DrushCommands {
    */
   private function convertUser($uid = NULL, $name = NULL) {
     $provider = 'simplesamlphp_auth';
+    // Dependency injection is more complicated code than static calls
+    // and therefore has a negative Developer Experience (DX) for our team.
+    // We mark these PHPCS standards as ignored.
+    // phpcs:ignore
     if (\Drupal::moduleHandler()->moduleExists('samlauth')) {
       $provider = 'samlauth';
     }
+    // Dependency injection is more complicated code than static calls
+    // and therefore has a negative Developer Experience (DX) for our team.
+    // We mark these PHPCS standards as ignored.
+    // phpcs:ignore
     $connection = \Drupal::database();
     if (isset($uid) && isset($name) && $uid != 1) {
       $connection->merge('authmap')
