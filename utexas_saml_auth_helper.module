@@ -17,11 +17,11 @@ function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_sta
     return;
   }
   if ($form_id === 'samlauth_configure_form') {
-    $form = _utexas_saml_auth_helper_samlauth($form);
+    _utexas_saml_auth_helper_samlauth($form);
   }
   $user_forms = ['user_form', 'user_register_form'];
   if (in_array($form_id, $user_forms)) {
-    $form = _utexas_saml_auth_helper_user_forms($form, $form_state, $form_id);
+    _utexas_saml_auth_helper_user_forms($form, $form_state, $form_id);
   }
 }
 
@@ -107,7 +107,7 @@ function utexas_saml_auth_helper_simplesamlphp_auth_user_attributes(UserInterfac
   return FALSE;
 }
 
-function _utexas_saml_auth_helper_samlauth($form) {
+function _utexas_saml_auth_helper_samlauth(&$form) {
   $settings = SamlAuthConfigurator::getSettings();
   $overrides = [
     'ui' => [
@@ -195,10 +195,9 @@ function _utexas_saml_auth_helper_samlauth($form) {
       }
     }
   }
-  return $form;
 }
 
-function _utexas_saml_auth_helper_user_forms($form, FormStateInterface $form_state, $form_id) {
+function _utexas_saml_auth_helper_user_forms(&$form, FormStateInterface $form_state, $form_id) {
   $account = $form_state->getFormObject()->getEntity();
   // These alterations don't apply to User 1.
   if ($account->id() == 1) {
@@ -257,5 +256,4 @@ function _utexas_saml_auth_helper_user_forms($form, FormStateInterface $form_sta
     // function to set it to *something*.
     array_unshift($form['#validate'], 'utexas_saml_auth_helper_user_account_form_validate');
   }
-  return $form;
 }
