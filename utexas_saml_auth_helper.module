@@ -121,9 +121,11 @@ function _utexas_saml_auth_helper_samlauth($form) {
       'linking' => [
         'map_users_name' => $settings['map_users_name'],
         'map_users_mail' => $settings['map_users_mail'],
+        'map_users_roles' => $settings['map_users_roles'],
+        'allow_all_roles' => TRUE,
       ],
       'sync_name' => $settings['sync_name'],
-      'sync_email' => $settings['sync_email'],
+      'sync_mail' => $settings['sync_mail'],
       'user_name_attribute' => $settings['user_name_attribute'],
       'user_mail_attribute' => $settings['user_mail_attribute'],
     ],
@@ -177,15 +179,19 @@ function _utexas_saml_auth_helper_samlauth($form) {
     foreach ($fields as $field => $value) {
       if (is_array($value)) {
         foreach ($value as $k => $v) {
-          $form[$group][$field][$k]['#disabled'] = TRUE;
-          $form[$group][$field][$k]['#default_value'] = $v;
-          $form[$group][$field][$k]['#description'] = t('This value is set by the utexas_saml_auth_helper module.');
+          if (isset($form[$group])) {
+            $form[$group][$field][$k]['#disabled'] = TRUE;
+            $form[$group][$field][$k]['#default_value'] = $v;
+            $form[$group][$field][$k]['#description'] = t('This value is set by the utexas_saml_auth_helper module.');
+          }
         }
       }
       else {
-        $form[$group][$field]['#disabled'] = TRUE;
-        $form[$group][$field]['#default_value'] = $value;
-        $form[$group][$field]['#description'] = t('This value is set by the utexas_saml_auth_helper module');
+        if (isset($form[$group])) {
+          $form[$group][$field]['#disabled'] = TRUE;
+          $form[$group][$field]['#default_value'] = $value;
+          $form[$group][$field]['#description'] = t('This value is set by the utexas_saml_auth_helper module');
+        }
       }
     }
   }
