@@ -239,14 +239,10 @@ function _utexas_saml_auth_helper_user_forms(&$form, FormStateInterface $form_st
     return;
   }
   if (isset($form['field_utexas_full_name'])) {
-    if ($account->id()) {
-      $authmap = \Drupal::service('externalauth.authmap');
-      $saml_enabled = $authmap->get($account->id(), 'simplesamlphp_auth') || $authmap->get($account->id(), 'samlauth');
-      if ($saml_enabled || $form_id === 'user_register_form') {
-        $form['field_utexas_full_name']['#disabled'] = TRUE;
-        $description = $form['field_utexas_full_name']['widget'][0]['value']['#description'];
-        $form['field_utexas_full_name']['widget'][0]['value']['#description'] = t('@description This is populated automatically by University of Texas account information. It can be changed by <a href="https://utexas.app.box.com/s/yg4c4u0dqjrmz8jej7d9ylrofpteo5rf">updating the preferred name in Workday</a>.', ['@description' => $description]);
-      }
+    if ($form_id === 'user_register_form') {
+      $form['field_utexas_full_name']['#disabled'] = TRUE;
+      $description = $form['field_utexas_full_name']['widget'][0]['value']['#description'];
+      $form['field_utexas_full_name']['widget'][0]['value']['#description'] = t('@description This is populated automatically by University of Texas account information. It can be changed by <a href="https://utexas.app.box.com/s/yg4c4u0dqjrmz8jej7d9ylrofpteo5rf">updating the preferred name in Workday</a>.', ['@description' => $description]);
     }
   }
 
