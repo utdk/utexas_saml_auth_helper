@@ -1,8 +1,26 @@
 # UTexas SAML Authentication Helper
 
-This is a Drupal module that provides UTexas-focused UI tweaks to the contributed [simplesamlphp_auth](https://drupal.org/project/simplesamlphp_auth) module.
+This is a Drupal module that provides UTexas-focused UI tweaks to the contributed [samlauth](https://drupal.org/project/samlauth) module.
 
-Full documentation can be found at https://drupalkit.its.utexas.edu/docs/
+End-user documentation can be found at https://drupalkit.its.utexas.edu/docs/
+
+## List of behaviors
+* Declares a dependency on the [samlauth](https://www.drupal.org/project/samlauth) module, causing that module and its dependency `externalauth` to be enabled when this module is enabled.
+* Includes configuration defaults for:
+  * `utexas_saml_auth_helper_iid_domain: eid.utexas.edu`
+  * `mail_body` -- The rewritten "account created" email body
+  * `mail_subject` -- The rewritten "account created" email subject
+* Set user account creation password form element to #access=FALSE and #required=FALSE.
+* Disable editing the username for already-created accounts.
+* Set email form element to #disabled=TRUE and #required=FALSE.
+* Add custom validation that will:
+  * Confirm the name entered is a valid EID
+    * The regex expression from the Drupal 7 module should be reused for this.
+  * Set email to EID + "@" + `utexas_saml_auth_helper_iid_domain` configuration setting.
+* Set required configuration for OneLogin library and disable editing of form fields
+* Define a drush command for converting all eligible users to SAML login. With the switch from `simplesamlphp_auth` to `samlauth`, this is effectively outdated, as `samlauth` will automatically convert eligible user accounts that already exist in the system.
+* If the `samlauth` module is enabled, redirect the legacy simplesamlphp_auth `/saml_login` path to `/saml/login`
+
 
 ## Configuring SAML user roles
 
