@@ -124,6 +124,9 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
         'map_users_roles' => $settings['map_users_roles'],
         'allow_all_roles' => TRUE,
       ],
+      'nameid' => [
+        'request_set_name_id_policy' => $settings['request_set_name_id_policy'],
+      ],
       'sync_name' => $settings['sync_name'],
       'sync_mail' => $settings['sync_mail'],
       'user_name_attribute' => $settings['user_name_attribute'],
@@ -161,7 +164,6 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
       'security_logout_responses_sign' => $settings['security_logout_responses_sign'],
       'security_nameid_encrypt' => $settings['security_nameid_encrypt'],
       'security_request_authn_context' => $settings['security_request_authn_context'],
-      'request_set_name_id_policy' => $settings['request_set_name_id_policy'],
       'sp_name_id_format' => $settings['sp_name_id_format'],
     ],
     'responses' => [
@@ -195,6 +197,9 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
       }
     }
   }
+  unset($form['user_info']['linking']['allow_all_roles']['#states']);
+  unset($form['user_info']['user_name_attribute']['#states']);
+  unset($form['user_info']['user_mail_attribute']['#states']);
 }
 
 function _utexas_saml_auth_helper_user_forms(&$form, FormStateInterface $form_state, $form_id) {
