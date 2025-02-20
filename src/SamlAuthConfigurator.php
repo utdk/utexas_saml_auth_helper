@@ -19,7 +19,7 @@ class SamlAuthConfigurator {
     'map_users_name' => TRUE,
     'map_users_mail' => FALSE,
     'map_users_roles' => ['anonymous'],
-    'metadata_valid_secs' => 60,
+    'metadata_valid_secs' => '',
     'metadata_cache_http' => FALSE,
     'unique_id_attribute' => 'uid',
     'request_set_name_id_policy' => TRUE,
