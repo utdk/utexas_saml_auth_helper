@@ -138,31 +138,27 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
     'service_provider' => [
       'sp_entity_id' => $settings['sp_entity_id'],
       'sp_key_cert_type' => 'file',
-      'sp_key_file' => $settings['sp_private_key'],
-      'sp_cert_file' => $settings['sp_x509_certificate'],
+      'sp_key_file' => str_replace('file:', '', $settings['sp_private_key']),
+      'sp_cert_file' => str_replace('file:', '', $settings['sp_x509_certificate']),
       'sp_new_cert_file' => '',
       'security_metadata_sign' => $settings['security_metadata_sign'],
       'caching' => [
         'metadata_cache_http' => $settings['metadata_cache_http'],
         'metadata_valid_secs' => $settings['metadata_valid_secs'],
-      ]
+      ],
     ],
     'identity_provider' => [
       'idp_entity_id' => $settings['idp_entity_id'],
       'idp_single_sign_on_service' => $settings['idp_single_sign_on_service'],
       'idp_single_log_out_service' => $settings['idp_single_log_out_service'],
       'idp_cert_type' => 'file',
-      'idp_certs' => [
-        0 => [
-          'file' => $settings['idp_certs'][0],
-        ],
-      ],
     ],
     'construction' => [
       'security_authn_requests_sign' => $settings['security_authn_requests_sign'],
       'security_logout_requests_sign' => $settings['security_logout_requests_sign'],
       'security_logout_responses_sign' => $settings['security_logout_responses_sign'],
       'security_nameid_encrypt' => $settings['security_nameid_encrypt'],
+      'request_set_name_id_policy' => $settings['request_set_name_id_policy'],
       'security_request_authn_context' => $settings['security_request_authn_context'],
       'sp_name_id_format' => $settings['sp_name_id_format'],
     ],
@@ -197,9 +193,18 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
       }
     }
   }
-  unset($form['user_info']['linking']['allow_all_roles']['#states']);
-  unset($form['user_info']['user_name_attribute']['#states']);
-  unset($form['user_info']['user_mail_attribute']['#states']);
+  if (isset($form['user_info'])) {
+    unset($form['user_info']['linking']['allow_all_roles']['#states']);
+    unset($form['user_info']['user_name_attribute']['#states']);
+    unset($form['user_info']['user_mail_attribute']['#states']);
+  }
+  if (isset(['responses']['security_messages_sign'])) {
+    unset($form['responses']['security_messages_sign']['#states']);
+  }
+  if (isset($form['identity_provider']['idp_certs'])) {
+    $form['identity_provider']['idp_certs']['#default_value'][0]['file'] = str_replace('file:', '', $settings['idp_certs'][0]);
+    $form['identity_provider']['idp_certs']['#disabled'] = TRUE;
+  }
 }
 
 function _utexas_saml_auth_helper_user_forms(&$form, FormStateInterface $form_state, $form_id) {
