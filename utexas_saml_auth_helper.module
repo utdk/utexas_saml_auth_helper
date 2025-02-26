@@ -107,6 +107,9 @@ function utexas_saml_auth_helper_simplesamlphp_auth_user_attributes(UserInterfac
   return FALSE;
 }
 
+/**
+ * Helper callback to modify configuration forms used with samlauth.
+ */
 function _utexas_saml_auth_helper_samlauth(&$form) {
   $settings = SamlAuthConfigurator::getSettings();
   $overrides = [
@@ -198,7 +201,7 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
     unset($form['user_info']['user_name_attribute']['#states']);
     unset($form['user_info']['user_mail_attribute']['#states']);
   }
-  if (isset(['responses']['security_messages_sign'])) {
+  if (isset($form['responses']['security_messages_sign'])) {
     unset($form['responses']['security_messages_sign']['#states']);
   }
   if (isset($form['identity_provider']['idp_certs'])) {
@@ -207,7 +210,11 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
   }
 }
 
+/**
+ * Helper callback to modify user login/register forms.
+ */
 function _utexas_saml_auth_helper_user_forms(&$form, FormStateInterface $form_state, $form_id) {
+  // phpcs:ignore
   $account = $form_state->getFormObject()->getEntity();
   // These alterations don't apply to User 1.
   if ($account->id() == 1) {
