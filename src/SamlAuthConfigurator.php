@@ -34,7 +34,7 @@ class SamlAuthConfigurator {
     'sp_key_cert_type' => '',
     'idp_entity_id' => 'https://enterprise.login.utexas.edu/idp/shibboleth',
     'idp_single_sign_on_service' => 'https://enterprise.login.utexas.edu/idp/profile/SAML2/Redirect/SSO',
-    'idp_single_log_out_service' => 'https://enterprise.login.utexas.edu/idp/shibboleth',
+    'idp_single_log_out_service' => 'https://enterprise.login.utexas.edu/idp/profile/Logout',
     'idp_change_password_service' => '',
     'idp_certs' => ['file:sites/default/files/private/saml/assets/cert/idp-cert-prod.crt'],
     'security_metadata_sign' => FALSE,
