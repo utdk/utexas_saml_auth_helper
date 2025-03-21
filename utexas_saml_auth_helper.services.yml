@@ -7,3 +7,7 @@ services:
     class: Drupal\utexas_saml_auth_helper\EventSubscriber\RedirectSamlLogin
     tags:
       - {name: event_subscriber}
+  utexas_saml_auth_helper.event_subscriber.user_sync:
+    class: Drupal\utexas_saml_auth_helper\EventSubscriber\UserFieldsEventSubscriber
+    tags:
+      - { name: event_subscriber }
