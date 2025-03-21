@@ -6,8 +6,10 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserInterface;
 use Drupal\utexas_saml_auth_helper\SamlAuthConfigurator;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Implements hook_form_alter().
@@ -268,5 +270,18 @@ function _utexas_saml_auth_helper_user_forms(&$form, FormStateInterface $form_st
     // The email address can't actually be blank, so we use a custom validate
     // function to set it to *something*.
     array_unshift($form['#validate'], 'utexas_saml_auth_helper_user_account_form_validate');
+  }
+}
+
+/**
+ * Implements hook_user_logout().
+ */
+function utexas_saml_auth_helper_user_logout(AccountInterface $account) {
+  $moduleHandler = \Drupal::service('module_handler');
+  if ($moduleHandler->moduleExists('samlauth')) {
+    $settings = SamlAuthConfigurator::getSettings();
+    $response = new RedirectResponse($settings['idp_single_log_out_service']);
+    $response->send();
+    return $response;
   }
 }
