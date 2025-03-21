@@ -3,7 +3,3 @@ services:
     class: Drupal\utexas_saml_auth_helper\Config\ConfigOverrides
     tags:
       - {name: config.factory.override, priority: 5}
-  utexas_saml_auth_helper.event_subscriber.redirect:
-    class: Drupal\utexas_saml_auth_helper\EventSubscriber\RedirectSamlLogin
-    tags:
-      - {name: event_subscriber}
