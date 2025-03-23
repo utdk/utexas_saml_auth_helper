@@ -278,7 +278,8 @@ function _utexas_saml_auth_helper_user_forms(&$form, FormStateInterface $form_st
  */
 function utexas_saml_auth_helper_user_logout(AccountInterface $account) {
   $moduleHandler = \Drupal::service('module_handler');
-  if ($moduleHandler->moduleExists('samlauth')) {
+  // For every user but "user 1" when samlauth is active, sign out of SSO.
+  if ($moduleHandler->moduleExists('samlauth') && $account->id() != 1) {
     $settings = SamlAuthConfigurator::getSettings();
     $response = new RedirectResponse($settings['idp_single_log_out_service']);
     $response->send();
