@@ -1,0 +1,5 @@
+services:
+  utexas_saml_auth_helper.overrider:
+    class: Drupal\utexas_saml_auth_helper\Config\ConfigOverrides
+    tags:
+      - {name: config.factory.override, priority: 5}
