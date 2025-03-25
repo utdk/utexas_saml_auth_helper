@@ -18,8 +18,8 @@ class ConfigOverrides implements ConfigFactoryOverrideInterface {
   public function loadOverrides($names) {
     $overrides = [];
     $config_name = 'samlauth.authentication';
-    $settings = SamlAuthConfigurator::getSettings(TRUE);
     if (in_array($config_name, $names)) {
+      $settings = SamlAuthConfigurator::getSettings(TRUE);
       foreach ($settings as $key => $value) {
         $overrides[$config_name][$key] = $value;
       }
