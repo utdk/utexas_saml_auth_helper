@@ -64,6 +64,7 @@ class SamlAuthConfigurator {
    */
   public static function getSettings() {
     $domain = \Drupal::request()->getSchemeAndHttpHost();
+    \Drupal::logger('utexas_saml_auth_helper')->notice("Domain is: $domain");
     $settings = self::$settings;
     foreach ($settings as $key => $value) {
       if (is_string($value)) {
