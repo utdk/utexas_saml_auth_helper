@@ -2,7 +2,6 @@
 
 namespace Drupal\utexas_saml_auth_helper;
 
-use Drupal\Core\Config\BootstrapConfigStorageFactory;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceProviderBase;
 
