@@ -113,7 +113,14 @@ function utexas_saml_auth_helper_simplesamlphp_auth_user_attributes(UserInterfac
  * Helper callback to modify configuration forms used with samlauth.
  */
 function _utexas_saml_auth_helper_samlauth(&$form) {
-  $settings = SamlAuthConfigurator::getSettings();
+  $settings = SamlAuthConfigurator::$settings;
+  $domain = \Drupal::request()->getSchemeAndHttpHost();
+  foreach ($settings as $key => $value) {
+    if (is_string($value)) {
+      $newvalue = str_replace('[DOMAIN]', $domain, $value);
+      $settings[$key] = $newvalue;
+    }
+  }
   $overrides = [
     'ui' => [
       'login_link_title' => $settings['login_link_title'],
@@ -280,7 +287,7 @@ function utexas_saml_auth_helper_user_logout(AccountInterface $account) {
   $moduleHandler = \Drupal::service('module_handler');
   // For every user but "user 1" when samlauth is active, sign out of SSO.
   if ($moduleHandler->moduleExists('samlauth') && $account->id() != 1) {
-    $settings = SamlAuthConfigurator::getSettings();
+    $settings = SamlAuthConfigurator::$settings;
     $response = new RedirectResponse($settings['idp_single_log_out_service']);
     $response->send();
     return $response;

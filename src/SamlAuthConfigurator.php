@@ -59,19 +59,4 @@ class SamlAuthConfigurator {
     'bypass_relay_state_check' => FALSE,
   ];
 
-  /**
-   * Get prepared settings.
-   */
-  public static function getSettings() {
-    $domain = \Drupal::request()->getSchemeAndHttpHost();
-    $settings = self::$settings;
-    foreach ($settings as $key => $value) {
-      if (is_string($value)) {
-        $newvalue = str_replace('[DOMAIN]', $domain, $value);
-        $settings[$key] = $newvalue;
-      }
-    }
-    return $settings;
-  }
-
 }
