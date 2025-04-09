@@ -43,9 +43,7 @@ class ConfigOverrides implements ConfigFactoryOverrideInterface {
    * Get prepared settings.
    */
   private function prepareSettings($settings) {
-    $request = $this->requestStack->getCurrentRequest();
-    if (!is_null($request)) {
-      $domain = $request->getSchemeAndHttpHost();
+    if ($domain = $this->getDomain()) {
       foreach ($settings as $key => $value) {
         if (is_string($value)) {
           $newvalue = str_replace('[DOMAIN]', $domain, $value);
@@ -54,6 +52,26 @@ class ConfigOverrides implements ConfigFactoryOverrideInterface {
       }
     }
     return $settings;
+  }
+
+  /**
+   * Replicate security checks from Symfony\Component\HttpFoundation\Request.
+   *
+   * @return string|bool
+   *   The site hostname, or FALSE if invalid.
+   */
+  private function getDomain() {
+    $host = $_SERVER['HTTP_HOST'];
+    // Trim and remove port number from host.
+    // Host is lowercase as per RFC 952/2181.
+    $host = strtolower(preg_replace('/:\d+$/', '', trim($host)));
+    // As the host can come from the user, check that it does not contain
+    // forbidden characters (see RFC 952 and RFC 2181) and use preg_replace()
+    // instead of preg_match() to prevent DoS attacks with long host names.
+    if ($host && '' == preg_replace('/(?:^\[)?[a-zA-Z0-9-:\]_]+\.?/', '', $host)) {
+      return 'https://' . $host;
+    }
+    return FALSE;
   }
 
   /**
