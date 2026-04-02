@@ -60,3 +60,14 @@ function utexas_saml_auth_helper_uninstall() {
   $mail_settings->set('status_activated', $original->get('status_activated'));
   $mail_settings->save();
 }
+
+/**
+ * Switch to using configuration from Pantheon Organization Secrets (#71).
+ */
+function utexas_saml_auth_helper_update_11000() {
+  $config = \Drupal::configFactory()->getEditable('samlauth.authentication');
+  $config->set('sp_x509_certificate', '');
+  $config->set('sp_private_key', '');
+  $config->set('idp_certs', '');
+  $config->save();
+}

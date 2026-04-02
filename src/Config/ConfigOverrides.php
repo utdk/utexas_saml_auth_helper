@@ -32,6 +32,9 @@ class ConfigOverrides implements ConfigFactoryOverrideInterface {
     $config_name = 'samlauth.authentication';
     if (in_array($config_name, $names)) {
       $settings = $this->prepareSettings(SamlAuthConfigurator::$settings);
+      $settings['sp_x509_certificate'] = SamlAuthConfigurator::getCertificate('sp_x509_certificate');
+      $settings['sp_private_key'] = SamlAuthConfigurator::getCertificate('sp_private_key');
+      $settings['idp_certs'] = [SamlAuthConfigurator::getCertificate('idp_cert')];
       foreach ($settings as $key => $value) {
         $overrides[$config_name][$key] = $value;
       }
