@@ -48,6 +48,21 @@ function utexas_saml_auth_helper_user_account_form_validate($form, &$form_state)
 }
 
 /**
+ * Form submit handler for samlauth_configure_form.
+ *
+ * Removes sensitive credential values before saving the form so that they are
+ * not stored in the database. The values will be provided by the Config
+ * Override.
+ *
+ * This executes prior to the normal submit handler.
+ */
+function _utexas_saml_auth_helper_submit($form, &$form_state) {
+  $form_state->setValue('idp_certs', []);
+  $form_state->setValue('sp_x509_certificate', '');
+  $form_state->setValue('sp_private_key', '');
+}
+
+/**
  * Custom validation for a user's name (UT EID).
  *
  * This function performs the following checks on a given name:
@@ -121,6 +136,11 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
       $settings[$key] = $newvalue;
     }
   }
+  $settings['sp_x509_certificate'] = SamlAuthConfigurator::getCertificate('sp_x509_certificate');
+  $settings['sp_private_key'] = SamlAuthConfigurator::getCertificate('sp_private_key');
+  $settings['idp_certs'] = SamlAuthConfigurator::getCertificate('idp_cert');
+  $sp_key_cert_type = 'config_config';
+  $idp_cert_type = 'config';
   $overrides = [
     'ui' => [
       'login_link_title' => $settings['login_link_title'],
@@ -149,9 +169,11 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
     ],
     'service_provider' => [
       'sp_entity_id' => $settings['sp_entity_id'],
-      'sp_key_cert_type' => 'file',
-      'sp_key_file' => str_replace('file:', '', $settings['sp_private_key']),
-      'sp_cert_file' => str_replace('file:', '', $settings['sp_x509_certificate']),
+      'sp_key_cert_type' => $sp_key_cert_type,
+      'sp_private_key' => $settings['sp_private_key'],
+      'sp_key_file' => $settings['sp_private_key'],
+      'sp_cert_file' => $settings['sp_x509_certificate'],
+      'sp_x509_certificate' => $settings['sp_x509_certificate'],
       'sp_new_cert_file' => '',
       'security_metadata_sign' => $settings['security_metadata_sign'],
       'caching' => [
@@ -163,7 +185,10 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
       'idp_entity_id' => $settings['idp_entity_id'],
       'idp_single_sign_on_service' => $settings['idp_single_sign_on_service'],
       'idp_single_log_out_service' => $settings['idp_single_log_out_service'],
-      'idp_cert_type' => 'file',
+      'idp_certs' => [
+        'cert' => $settings['idp_certs'],
+      ],
+      'idp_cert_type' => $idp_cert_type,
     ],
     'construction' => [
       'security_authn_requests_sign' => $settings['security_authn_requests_sign'],
@@ -213,9 +238,13 @@ function _utexas_saml_auth_helper_samlauth(&$form) {
   if (isset($form['responses']['security_messages_sign'])) {
     unset($form['responses']['security_messages_sign']['#states']);
   }
+  if (isset($form['service_provider'])) {
+    $form['service_provider']['sp_key_cert_type']['#value'] = $sp_key_cert_type;
+  }
   if (isset($form['identity_provider']['idp_certs'])) {
-    $form['identity_provider']['idp_certs']['#default_value'][0]['file'] = str_replace('file:', '', $settings['idp_certs'][0]);
-    $form['identity_provider']['idp_certs']['#disabled'] = TRUE;
+    $form['identity_provider']['idp_cert_type']['#value'] = $idp_cert_type;
+    $form['identity_provider']['idp_certs']['#default_value'][0]['cert'] = $settings['idp_certs'];
+    array_unshift($form['#submit'], '_utexas_saml_auth_helper_submit');
   }
 }
 

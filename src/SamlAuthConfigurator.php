@@ -8,6 +8,30 @@ namespace Drupal\utexas_saml_auth_helper;
 class SamlAuthConfigurator {
 
   /**
+   * Helper function to get certificates.
+   *
+   * @param string $name
+   *   The machine name of the cert to get, matching the samlauth config value.
+   *
+   * @return mixed
+   *   A string representing the cert, or NULL.
+   */
+  public static function getCertificate($name) {
+    // First see if the value is provided by a Pantheon Organizational secret.
+    if (function_exists('pantheon_get_secret')) {
+      $certificate = pantheon_get_secret($name) ?? NULL;
+      if (!is_null($certificate)) {
+        return $certificate;
+      }
+    }
+    // The value is not found as a Pantheon Secret.
+    \Drupal::logger('utexas_saml_auth_helper')->warning('The certificate for %name was not found', [
+      '%name' => $name,
+    ]);
+    return NULL;
+  }
+
+  /**
    * Configuration associated with samlauth module configuration of OneLogin.
    *
    * @var array
@@ -29,14 +53,14 @@ class SamlAuthConfigurator {
     'user_mail_attribute' => 'mail',
     'sp_entity_id' => '[DOMAIN]/onelogin',
     'sp_name_id_format' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
-    'sp_x509_certificate' => 'file:sites/default/files/private/saml/assets/cert/sp-cert.crt',
-    'sp_private_key' => 'file:sites/default/files/private/saml/assets/cert/sp-key.pem',
+    'sp_x509_certificate' => '',
+    'sp_private_key' => '',
     'sp_key_cert_type' => '',
+    'idp_certs' => [],
     'idp_entity_id' => 'https://enterprise.login.utexas.edu/idp/shibboleth',
     'idp_single_sign_on_service' => 'https://enterprise.login.utexas.edu/idp/profile/SAML2/Redirect/SSO',
     'idp_single_log_out_service' => 'https://enterprise.login.utexas.edu/idp/profile/Logout',
     'idp_change_password_service' => '',
-    'idp_certs' => ['file:sites/default/files/private/saml/assets/cert/idp-cert-prod.crt'],
     'security_metadata_sign' => FALSE,
     'security_authn_requests_sign' => FALSE,
     'security_logout_requests_sign' => FALSE,
