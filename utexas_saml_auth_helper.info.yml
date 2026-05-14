@@ -2,4 +2,6 @@ name: UTexas SAML authentication helper
 type: module
 description: Provides UTexas-focused UI tweaks for SAML Authentication
 core_version_requirement: ">=10"
-version: '3.7.0'
+version: '3.7.1'
+dependencies:
+  - 'samlauth:samlauth'

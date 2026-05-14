@@ -1,3 +1,6 @@
+parameters:
+  utexas_saml_auth_helper.skip_procedural_hook_scan: true
+
 services:
   utexas_saml_auth_helper.overrider:
     class: Drupal\utexas_saml_auth_helper\Config\ConfigOverrides
