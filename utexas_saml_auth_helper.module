@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Defines hooks & permissions for utexas_saml_auth_helper module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\utexas_saml_auth_helper\Hook\Hooks;
+
+/**
+ * Implements hook_form_alter().
+ */
+#[LegacyHook]
+function utexas_saml_auth_helper_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  \Drupal::service(Hooks::class)->formAlter($form, $form_state, $form_id);
+}
+
+/**
+ * Implements hook_user_logout().
+ */
+#[LegacyHook]
+function utexas_saml_auth_helper_user_logout(AccountInterface $account) {
+  return \Drupal::service(Hooks::class)->userLogout($account);
+}
