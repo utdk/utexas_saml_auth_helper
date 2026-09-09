@@ -25,11 +25,11 @@ class SamlAuthConfigurator {
       if (!is_null($certificate)) {
         return $certificate;
       }
+      // The value is not found as a Pantheon Secret.
+      \Drupal::logger('utexas_saml_auth_helper')->warning('The certificate for %name was not found', [
+        '%name' => $name,
+      ]);
     }
-    // The value is not found as a Pantheon Secret.
-    \Drupal::logger('utexas_saml_auth_helper')->warning('The certificate for %name was not found', [
-      '%name' => $name,
-    ]);
     return NULL;
   }
 
