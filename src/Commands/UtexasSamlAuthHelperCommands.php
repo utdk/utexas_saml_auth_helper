@@ -2,8 +2,8 @@
 
 namespace Drupal\utexas_saml_auth_helper\Commands;
 
-use Drush\Commands\DrushCommands;
 use Drupal\user\Entity\User;
+use Drush\Commands\DrushCommands;
 
 /**
  * Provide the ability to register existing users in the authmap table.
@@ -35,7 +35,8 @@ class UtexasSamlAuthHelperCommands extends DrushCommands {
         break;
 
       default:
-        if (!($user = user_load_by_name($input))) {
+        $user = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['name' => $input]);
+        if (!($user)) {
           // The user doesn't exist in the system.
           throw new \Exception(dt('"@input" is not a valid choice or username. Provide "list" (list all eligible users), "all" (convert all users), "choose" (iterate through individually), or a valid username.', ['@input' => $input]));
         }
