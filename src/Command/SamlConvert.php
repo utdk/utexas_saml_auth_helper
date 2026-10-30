@@ -15,7 +15,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
   name: 'saml:convert',
-  description: 'Register existing users in the authmap table.'
+  description: 'Register existing users in the authmap table.',
+  usages: [
+    'saml:convert all (automatically converts all eligible users)',
+    'saml:convert list (lists all eligible usernames)',
+    'saml:convert choose (interactive prompt to convert individual users)',
+    'saml:convert <username> (convert a specific username)',
+  ],
 )]
 class SamlConvert {
 
@@ -122,7 +128,9 @@ class SamlConvert {
   private function list(OutputInterface $output) {
     $eligible = $this->getEligibleUsers();
     $output->writeln("The following accounts are eligible for saml login:");
-    foreach ($eligible as $name) {
+    foreach ($eligible as $uid) {
+      $user = User::load($uid);
+      $name = $user->getAccountName();
       $output->writeln($name);
     }
     return Command::SUCCESS;
@@ -135,7 +143,9 @@ class SamlConvert {
     $io = new SymfonyStyle($input, $output);
     $eligible = $this->getEligibleUsers();
     if (!empty($eligible)) {
-      foreach ($eligible as $name) {
+      foreach ($eligible as $uid) {
+        $user = User::load($uid);
+        $name = $user->getAccountName();
         $choice = $io->choice("Convert $name?", [
           'yes' => 'Yes',
           'no' => 'No',
